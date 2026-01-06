@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'dart:developer';
 
 //Firebase service class with proper security rules implementation
 class FirebaseService {
@@ -30,9 +29,7 @@ class FirebaseService {
         cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
       );
 
-      log('FirebaseService: Initialized successfully');
     } catch (e) {
-      log('FirebaseService: Error during initialization: $e');
     }
   }
 
@@ -73,17 +70,14 @@ class FirebaseService {
         };
 
         await userDoc.set(userData);
-        log('FirebaseService: User document created for $userId');
       } else {
         // Update last login time
         await userDoc.update({
           'lastLoginAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
         });
-        log('FirebaseService: User document updated for $userId');
       }
     } catch (e) {
-      log('FirebaseService: Error creating user document: $e');
       rethrow;
     }
   }
@@ -124,10 +118,8 @@ class FirebaseService {
       // Increment user's notes count
       await _incrementUserNotesCount(userId);
 
-      log('FirebaseService: Note created successfully with ID: ${noteRef.id}');
       return noteRef;
     } catch (e) {
-      log('FirebaseService: Error creating note: $e');
       rethrow;
     }
   }
@@ -155,9 +147,7 @@ class FirebaseService {
       };
 
       await getUserNotesRef(userId).doc(noteId).update(updateData);
-      log('FirebaseService: Note updated successfully: $noteId');
     } catch (e) {
-      log('FirebaseService: Error updating note: $e');
       rethrow;
     }
   }
@@ -178,9 +168,7 @@ class FirebaseService {
       // Decrement user's notes count
       await _decrementUserNotesCount(userId);
 
-      log('FirebaseService: Note deleted successfully: $noteId');
     } catch (e) {
-      log('FirebaseService: Error deleting note: $e');
       rethrow;
     }
   }
@@ -198,7 +186,6 @@ class FirebaseService {
 
       return await getUserNotesRef(userId).doc(noteId).get();
     } catch (e) {
-      log('FirebaseService: Error getting note: $e');
       rethrow;
     }
   }
@@ -236,7 +223,6 @@ class FirebaseService {
 
       return query.snapshots();
     } catch (e) {
-      log('FirebaseService: Error getting notes stream: $e');
       rethrow;
     }
   }
@@ -260,7 +246,6 @@ class FirebaseService {
 
       return query.snapshots();
     } catch (e) {
-      log('FirebaseService: Error searching notes: $e');
       rethrow;
     }
   }
@@ -286,7 +271,6 @@ class FirebaseService {
           .orderBy(orderBy, descending: descending)
           .snapshots();
     } catch (e) {
-      log('FirebaseService: Error getting notes by date range: $e');
       rethrow;
     }
   }
@@ -309,9 +293,7 @@ class FirebaseService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
-      log('FirebaseService: Note ${isArchived ? 'archived' : 'unarchived'}: $noteId');
     } catch (e) {
-      log('FirebaseService: Error toggling note archive: $e');
       rethrow;
     }
   }
@@ -334,9 +316,7 @@ class FirebaseService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
-      log('FirebaseService: Note ${isPinned ? 'pinned' : 'unpinned'}: $noteId');
     } catch (e) {
-      log('FirebaseService: Error toggling note pin: $e');
       rethrow;
     }
   }
@@ -359,9 +339,7 @@ class FirebaseService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
-      log('FirebaseService: Note tags updated: $noteId');
     } catch (e) {
-      log('FirebaseService: Error updating note tags: $e');
       rethrow;
     }
   }
@@ -389,9 +367,7 @@ class FirebaseService {
       // Update user's notes count
       await _updateUserNotesCount(userId, -noteIds.length);
 
-      log('FirebaseService: Batch deleted ${noteIds.length} notes');
     } catch (e) {
-      log('FirebaseService: Error batch deleting notes: $e');
       rethrow;
     }
   }
@@ -406,7 +382,6 @@ class FirebaseService {
 
       return await usersRef.doc(userId).get();
     } catch (e) {
-      log('FirebaseService: Error getting user document: $e');
       rethrow;
     }
   }
@@ -433,9 +408,7 @@ class FirebaseService {
       if (additionalData != null) updateData.addAll(additionalData);
 
       await usersRef.doc(userId).update(updateData);
-      log('FirebaseService: User profile updated for $userId');
     } catch (e) {
-      log('FirebaseService: Error updating user profile: $e');
       rethrow;
     }
   }
@@ -476,7 +449,6 @@ class FirebaseService {
         'lastLoginAt': userData?['lastLoginAt'],
       };
     } catch (e) {
-      log('FirebaseService: Error getting user stats: $e');
       rethrow;
     }
   }
@@ -501,9 +473,7 @@ class FirebaseService {
       batch.delete(usersRef.doc(userId));
 
       await batch.commit();
-      log('FirebaseService: User data cleaned up for: $userId');
     } catch (e) {
-      log('FirebaseService: Error cleaning up user data: $e');
       rethrow;
     }
   }
@@ -516,7 +486,6 @@ class FirebaseService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      log('FirebaseService: Error incrementing notes count: $e');
       // Don't rethrow as this is not critical
     }
   }
@@ -529,7 +498,6 @@ class FirebaseService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      log('FirebaseService: Error decrementing notes count: $e');
       // Don't rethrow as this is not critical
     }
   }
@@ -542,7 +510,6 @@ class FirebaseService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      log('FirebaseService: Error updating notes count: $e');
       // Don't rethrow as this is not critical
     }
   }
@@ -553,7 +520,6 @@ class FirebaseService {
       await _firestore.enableNetwork();
       return true;
     } catch (e) {
-      log('FirebaseService: No connectivity: $e');
       return false;
     }
   }
@@ -562,9 +528,7 @@ class FirebaseService {
   Future<void> syncOfflineData() async {
     try {
       await _firestore.enableNetwork();
-      log('FirebaseService: Offline data synced');
     } catch (e) {
-      log('FirebaseService: Error syncing offline data: $e');
     }
   }
 }

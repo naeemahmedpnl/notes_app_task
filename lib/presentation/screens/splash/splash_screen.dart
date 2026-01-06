@@ -8,7 +8,6 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../providers/auth_provider.dart';
-import 'dart:developer';
 
 //Splash screen to handle initial app loading and authentication check
 class SplashScreen extends StatefulWidget {
@@ -80,7 +79,6 @@ class _SplashScreenState extends State<SplashScreen>
         _navigateToLogin();
       }
     } catch (e) {
-      log('SplashScreen: Error checking auth state: $e');
 
       if (!mounted) return;
 

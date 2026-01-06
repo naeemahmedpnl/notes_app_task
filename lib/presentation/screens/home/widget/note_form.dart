@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -60,7 +58,6 @@ class _NoteFormState extends State<NoteForm> {
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) {
       _showMessage('Please fix validation errors', isError: true);
-      log('[_handleSubmit] Validation failed');
       return;
     }
 
@@ -69,7 +66,6 @@ class _NoteFormState extends State<NoteForm> {
 
     if (authProvider.currentUser == null) {
       _showMessage('User not authenticated', isError: true);
-      log('[_handleSubmit] User not authenticated');
       return;
     }
 
@@ -79,8 +75,6 @@ class _NoteFormState extends State<NoteForm> {
     final title = _titleController.text.trim();
     final message = _messageController.text.trim();
     final userId = authProvider.currentUser!.uid;
-
-    log('[_handleSubmit] Attempting to ${_isEditing ? "update" : "create"} note - Title: $title, UserId: $userId');
 
     try {
       bool success = false;
@@ -114,10 +108,7 @@ class _NoteFormState extends State<NoteForm> {
       }
     } catch (e) {
       _showMessage('Failed to save note: ${e.toString()}', isError: true);
-      log('[_handleSubmit] Error: ${e.toString()}');
     }
-
-    log('[_handleSubmit] Operation completed');
   }
 
   //Show success or error message to user
@@ -202,7 +193,11 @@ class _NoteFormState extends State<NoteForm> {
         child: Column(
           children: [
             _buildHeader(),
-            Expanded(child: _buildForm()),
+            Expanded(
+              child: SingleChildScrollView(
+                child: _buildForm(),
+              ),
+            ),
             _buildActionButtons(),
           ],
         ),
@@ -263,7 +258,7 @@ class _NoteFormState extends State<NoteForm> {
   Widget _buildForm() {
     return Form(
       key: _formKey,
-      child: SingleChildScrollView(
+      child: Padding(
         padding: EdgeInsets.all(16.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -280,7 +275,7 @@ class _NoteFormState extends State<NoteForm> {
               textInputAction: TextInputAction.next,
               validator: Validators.validateNoteTitle,
               onFieldSubmitted: (_) => _messageFocusNode.requestFocus(),
-              autofocus: !_isEditing,
+              autofocus: false,
             ),
 
             SizedBox(height: 20.h),
@@ -327,13 +322,10 @@ class _NoteFormState extends State<NoteForm> {
 
   //Build action buttons with responsive layout
   Widget _buildActionButtons() {
-    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
     return Container(
-      padding: EdgeInsets.only(
-        left: 16.w,
-        right: 16.w,
-        top: 16.h,
-        bottom: keyboardHeight > 0 ? keyboardHeight + 16.h : 16.h,
+      padding: EdgeInsets.symmetric(
+        horizontal: 16.w,
+        vertical: 16.h,
       ),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
@@ -343,17 +335,14 @@ class _NoteFormState extends State<NoteForm> {
           ),
         ),
       ),
-      child: SafeArea(
-        top: false,
-        child: Selector<NotesProvider, bool>(
-          selector: (context, notesProvider) => notesProvider.isLoading,
-          builder: (context, isLoading, child) {
-            return ResponsiveWidget(
-              mobile: _buildMobileButtons(isLoading),
-              tablet: _buildTabletButtons(isLoading),
-            );
-          },
-        ),
+      child: Selector<NotesProvider, bool>(
+        selector: (context, notesProvider) => notesProvider.isLoading,
+        builder: (context, isLoading, child) {
+          return ResponsiveWidget(
+            mobile: _buildMobileButtons(isLoading),
+            tablet: _buildTabletButtons(isLoading),
+          );
+        },
       ),
     );
   }
@@ -367,7 +356,9 @@ class _NoteFormState extends State<NoteForm> {
           text: _isEditing ? 'Update Note' : 'Save Note',
           onPressed: _handleSubmit,
           loading: isLoading,
-          icon: _isEditing ? CupertinoIcons.arrow_clockwise : CupertinoIcons.check_mark,
+          icon: _isEditing
+              ? CupertinoIcons.arrow_clockwise
+              : CupertinoIcons.check_mark,
           showIcon: true,
         ),
 
@@ -414,7 +405,9 @@ class _NoteFormState extends State<NoteForm> {
               text: _isEditing ? 'Update Note' : 'Save Note',
               onPressed: _handleSubmit,
               loading: isLoading,
-              icon: _isEditing ? CupertinoIcons.arrow_clockwise : CupertinoIcons.check_mark,
+              icon: _isEditing
+                  ? CupertinoIcons.arrow_clockwise
+                  : CupertinoIcons.check_mark,
               showIcon: true,
             ),
           ),

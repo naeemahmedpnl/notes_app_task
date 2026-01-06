@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:developer';
 import '../models/note_model.dart';
 import '../services/firebase_service.dart';
 
@@ -24,10 +23,8 @@ class NotesRepository {
         metadata: metadata,
       );
 
-      log('Note created: ${docRef.id}');
       return docRef.id;
     } catch (e) {
-      log('Error creating note: $e');
       rethrow;
     }
   }
@@ -51,9 +48,7 @@ class NotesRepository {
         metadata: metadata,
       );
 
-      log('Note updated: $noteId');
     } catch (e) {
-      log('Error updating note: $e');
       rethrow;
     }
   }
@@ -71,9 +66,7 @@ class NotesRepository {
         noteId: noteId,
       );
 
-      log('Note deleted: $noteId');
     } catch (e) {
-      log('Error deleting note: $e');
       rethrow;
     }
   }
@@ -94,7 +87,6 @@ class NotesRepository {
       }
       return null;
     } catch (e) {
-      log('Error fetching note: $e');
       rethrow;
     }
   }
@@ -141,7 +133,6 @@ class NotesRepository {
           .getUserNotesStream(userId, queryBuilder: queryBuilder)
           .map((querySnapshot) => _parseNotesList(querySnapshot, userId));
     } catch (e) {
-      log('Error in notes stream: $e');
       rethrow;
     }
   }
@@ -164,7 +155,6 @@ class NotesRepository {
           )
           .map((querySnapshot) => _parseNotesList(querySnapshot, userId));
     } catch (e) {
-      log('Error searching notes: $e');
       rethrow;
     }
   }
@@ -193,7 +183,6 @@ class NotesRepository {
           )
           .map((querySnapshot) => _parseNotesList(querySnapshot, userId));
     } catch (e) {
-      log('Error getting notes in date range: $e');
       rethrow;
     }
   }
@@ -211,9 +200,7 @@ class NotesRepository {
         noteId: noteId,
         isArchived: isArchived,
       );
-      log('Note archive toggled: $noteId');
     } catch (e) {
-      log('Error toggling archive: $e');
       rethrow;
     }
   }
@@ -231,9 +218,7 @@ class NotesRepository {
         noteId: noteId,
         isPinned: isPinned,
       );
-      log('Note pin toggled: $noteId');
     } catch (e) {
-      log('Error toggling pin: $e');
       rethrow;
     }
   }
@@ -258,9 +243,7 @@ class NotesRepository {
         noteId: noteId,
         tags: cleanTags,
       );
-      log('Note tags updated: $noteId');
     } catch (e) {
-      log('Error updating tags: $e');
       rethrow;
     }
   }
@@ -281,9 +264,7 @@ class NotesRepository {
         userId: userId,
         noteIds: validNoteIds,
       );
-      log('Batch deleted ${validNoteIds.length} notes');
     } catch (e) {
-      log('Error batch deleting: $e');
       rethrow;
     }
   }
@@ -294,7 +275,6 @@ class NotesRepository {
       if (userId.isEmpty) throw Exception('User ID is required');
       return await _firebaseService.getUserStats(userId);
     } catch (e) {
-      log('Error getting stats: $e');
       rethrow;
     }
   }
@@ -304,7 +284,6 @@ class NotesRepository {
     try {
       return await _firebaseService.checkConnectivity();
     } catch (e) {
-      log('Error checking connectivity: $e');
       return false;
     }
   }
@@ -313,9 +292,7 @@ class NotesRepository {
   Future<void> syncOfflineData() async {
     try {
       await _firebaseService.syncOfflineData();
-      log('Offline sync completed');
     } catch (e) {
-      log('Error syncing offline data: $e');
       rethrow;
     }
   }
@@ -332,7 +309,6 @@ class NotesRepository {
       }
       return 0;
     } catch (e) {
-      log('Error getting notes count: $e');
       return 0;
     }
   }
@@ -413,9 +389,7 @@ class NotesRepository {
             archivedNotesSnapshot.docs.map((doc) => doc.id).toList();
         await batchDeleteNotes(userId: userId, noteIds: noteIds);
       }
-      log('Permanently deleted ${archivedNotesSnapshot.docs.length} archived notes');
     } catch (e) {
-      log('Error permanently deleting archived notes: $e');
       rethrow;
     }
   }
@@ -447,7 +421,6 @@ class NotesRepository {
         return exportData;
       }).toList();
     } catch (e) {
-      log('Error exporting notes: $e');
       rethrow;
     }
   }
@@ -484,15 +457,12 @@ class NotesRepository {
           );
           importedCount++;
         } catch (e) {
-          log('Error importing note: $e');
           continue;
         }
       }
 
-      log('Imported $importedCount out of ${notesData.length} notes');
       return importedCount;
     } catch (e) {
-      log('Error importing notes: $e');
       rethrow;
     }
   }
@@ -508,9 +478,7 @@ class NotesRepository {
         final noteIds = notesSnapshot.docs.map((doc) => doc.id).toList();
         await batchDeleteNotes(userId: userId, noteIds: noteIds);
       }
-      log('Cleaned up ${notesSnapshot.docs.length} notes for user');
     } catch (e) {
-      log('Error cleaning up notes: $e');
       rethrow;
     }
   }
@@ -537,7 +505,6 @@ class NotesRepository {
             final data = doc.data() as Map<String, dynamic>;
             return NoteModel.fromFirestore(data, doc.id);
           } catch (e) {
-            log('Error parsing note ${doc.id}: $e');
             return null;
           }
         })

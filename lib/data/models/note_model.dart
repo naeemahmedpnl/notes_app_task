@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-import 'dart:developer';
 
 @immutable
 class NoteModel {
@@ -44,7 +43,6 @@ class NoteModel {
         color: data['color']?.toString(),
       );
     } catch (e) {
-      log('NoteModel: Error parsing Firestore data: $e');
       return NoteModel(
         id: documentId,
         title: 'Error Loading Note',
@@ -71,7 +69,6 @@ class NoteModel {
         color: json['color']?.toString(),
       );
     } catch (e) {
-      log('NoteModel: Error parsing JSON data: $e');
       rethrow;
     }
   }
@@ -261,7 +258,6 @@ class NoteModel {
         return DateTime.now();
       }
     } catch (e) {
-      log('NoteModel: Error parsing timestamp: $e');
       return DateTime.now();
     }
   }
@@ -278,7 +274,6 @@ class NoteModel {
         return DateTime.now();
       }
     } catch (e) {
-      log('NoteModel: Error parsing DateTime: $e');
       return DateTime.now();
     }
   }
@@ -291,7 +286,6 @@ class NoteModel {
         return [];
       }
     } catch (e) {
-      log('NoteModel: Error parsing string list: $e');
       return [];
     }
   }

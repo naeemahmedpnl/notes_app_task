@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:notes_app/core/utils/app_snackbar.dart';
 import 'package:provider/provider.dart';
@@ -32,6 +33,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
   bool _isGridView = false;
   bool _showBackToTop = false;
   bool _hasInitializedStream = false;
+  DateTime? _lastBackPressTime;
 
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -149,17 +151,29 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
         barrierColor: context.overlayDark,
-        builder: (context) => Container(
-          height: MediaQuery.of(context).size.height * 0.9,
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(AppConstants.extraLargeRadius.r),
-              topRight: Radius.circular(AppConstants.extraLargeRadius.r),
+        enableDrag: true,
+        isDismissible: true,
+        builder: (context) {
+          final screenHeight = MediaQuery.of(context).size.height;
+          final containerHeight = screenHeight * 0.9;
+
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
             ),
-          ),
-          child: child,
-        ),
+            child: Container(
+              height: containerHeight,
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(AppConstants.extraLargeRadius.r),
+                  topRight: Radius.circular(AppConstants.extraLargeRadius.r),
+                ),
+              ),
+              child: child,
+            ),
+          );
+        },
       );
     } catch (e) {
       if (mounted) {
@@ -315,31 +329,53 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
     super.dispose();
   }
 
+  Future<bool> _onWillPop() async {
+    final now = DateTime.now();
+    if (_lastBackPressTime == null ||
+        now.difference(_lastBackPressTime!) > const Duration(seconds: 2)) {
+      _lastBackPressTime = now;
+      context.showInfo('Press back again to exit');
+      return false;
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      resizeToAvoidBottomInset: false,
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return CustomScrollView(
-            controller: _scrollController,
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              _buildResponsiveAppBar(),
-              SliverFillRemaining(
-                hasScrollBody: true,
-                child: ResponsiveWidget(
-                  mobile: _buildLayout(constraints, crossAxisCount: 2),
-                  tablet: _buildLayout(constraints,
-                      crossAxisCount: 3, addPadding: true),
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (!didPop) {
+          final shouldPop = await _onWillPop();
+          if (shouldPop && mounted) {
+            SystemNavigator.pop();
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        resizeToAvoidBottomInset: false,
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            return CustomScrollView(
+              controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                _buildResponsiveAppBar(),
+                SliverFillRemaining(
+                  hasScrollBody: true,
+                  child: ResponsiveWidget(
+                    mobile: _buildLayout(constraints, crossAxisCount: 2),
+                    tablet: _buildLayout(constraints,
+                        crossAxisCount: 3, addPadding: true),
+                  ),
                 ),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
+        floatingActionButton: _buildFloatingActionButtons(),
       ),
-      floatingActionButton: _buildFloatingActionButtons(),
     );
   }
 
@@ -660,7 +696,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
         context.responsivePadding.left,
         AppConstants.mediumPadding.h,
         context.responsivePadding.right,
-        100.h,
+        MediaQuery.of(context).padding.bottom + 100.h,
       ),
       itemCount: notes.length,
       itemBuilder: (context, index) {
@@ -684,7 +720,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
         context.responsivePadding.left,
         AppConstants.mediumPadding.h,
         context.responsivePadding.right,
-        100.h,
+        MediaQuery.of(context).padding.bottom + 100.h,
       ),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
@@ -911,7 +947,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   width: 56.0,
                   height: 56.0,
                   child: FloatingActionButton(
-                    onPressed: notesProvider.isLoading ? null : _showAddNoteForm,
+                    onPressed:
+                        notesProvider.isLoading ? null : _showAddNoteForm,
                     backgroundColor: notesProvider.isLoading
                         ? context.primary70
                         : Theme.of(context).colorScheme.primary,

@@ -3,7 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:notes_app/core/utils/app_snackbar.dart';
 import 'package:provider/provider.dart';
-import 'dart:developer';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/responsive_helper.dart';
@@ -190,7 +189,6 @@ class _LoginScreenState extends State<LoginScreen> {
       try {
         _authProvider.removeListener(_authListener!);
       } catch (e) {
-        log('LoginScreen: Error removing auth listener: $e');
       }
     }
 

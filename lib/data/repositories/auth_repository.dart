@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'dart:developer';
 
 import '../models/user_model.dart';
 import '../services/firebase_service.dart';
@@ -44,13 +43,10 @@ class AuthRepository {
       // Convert to UserModel
       final userModel = UserModel.fromFirebaseUser(user);
 
-      log('AuthRepository: User signed in successfully: ${user.email}');
       return userModel;
     } on FirebaseAuthException catch (e) {
-      log('AuthRepository: Firebase Auth error during sign in: ${e.code}');
       throw _handleAuthException(e);
     } catch (e) {
-      log('AuthRepository: Error during sign in: $e');
       rethrow;
     }
   }
@@ -96,13 +92,10 @@ class AuthRepository {
       // Convert to UserModel
       final userModel = UserModel.fromFirebaseUser(user);
 
-      log('AuthRepository: User account created successfully: ${user.email}');
       return userModel;
     } on FirebaseAuthException catch (e) {
-      log('AuthRepository: Firebase Auth error during registration: ${e.code}');
       throw _handleAuthException(e);
     } catch (e) {
-      log('AuthRepository: Error during registration: $e');
       rethrow;
     }
   }
@@ -110,9 +103,7 @@ class AuthRepository {
   Future<void> signOut() async {
     try {
       await _auth.signOut();
-      log('AuthRepository: User signed out successfully');
     } catch (e) {
-      log('AuthRepository: Error during sign out: $e');
       rethrow;
     }
   }
@@ -125,12 +116,9 @@ class AuthRepository {
       }
 
       await _auth.sendPasswordResetEmail(email: email.trim().toLowerCase());
-      log('AuthRepository: Password reset email sent to: $email');
     } on FirebaseAuthException catch (e) {
-      log('AuthRepository: Firebase Auth error sending reset email: ${e.code}');
       throw _handleAuthException(e);
     } catch (e) {
-      log('AuthRepository: Error sending password reset email: $e');
       rethrow;
     }
   }
@@ -152,10 +140,7 @@ class AuthRepository {
         userId: user.uid,
         displayName: trimmedName,
       );
-
-      log('AuthRepository: Display name updated successfully');
     } catch (e) {
-      log('AuthRepository: Error updating display name: $e');
       rethrow;
     }
   }
@@ -177,13 +162,9 @@ class AuthRepository {
         userId: user.uid,
         additionalData: {'email': trimmedEmail},
       );
-
-      log('AuthRepository: Email updated successfully');
     } on FirebaseAuthException catch (e) {
-      log('AuthRepository: Firebase Auth error updating email: ${e.code}');
       throw _handleAuthException(e);
     } catch (e) {
-      log('AuthRepository: Error updating email: $e');
       rethrow;
     }
   }
@@ -202,13 +183,9 @@ class AuthRepository {
         throw Exception('Password must be at least 6 characters long');
       }
       await user.updatePassword(newPassword);
-
-      log('AuthRepository: Password updated successfully');
     } on FirebaseAuthException catch (e) {
-      log('AuthRepository: Firebase Auth error updating password: ${e.code}');
       throw _handleAuthException(e);
     } catch (e) {
-      log('AuthRepository: Error updating password: $e');
       rethrow;
     }
   }
@@ -232,12 +209,9 @@ class AuthRepository {
       );
 
       await user.reauthenticateWithCredential(credential);
-      log('AuthRepository: User reauthenticated successfully');
     } on FirebaseAuthException catch (e) {
-      log('AuthRepository: Firebase Auth error during reauthentication: ${e.code}');
       throw _handleAuthException(e);
     } catch (e) {
-      log('AuthRepository: Error during reauthentication: $e');
       rethrow;
     }
   }
@@ -254,12 +228,9 @@ class AuthRepository {
       }
 
       await user.sendEmailVerification();
-      log('AuthRepository: Email verification sent');
     } on FirebaseAuthException catch (e) {
-      log('AuthRepository: Firebase Auth error sending verification: ${e.code}');
       throw _handleAuthException(e);
     } catch (e) {
-      log('AuthRepository: Error sending email verification: $e');
       rethrow;
     }
   }
@@ -272,9 +243,7 @@ class AuthRepository {
       }
 
       await user.reload();
-      log('AuthRepository: User data reloaded');
     } catch (e) {
-      log('AuthRepository: Error reloading user: $e');
       rethrow;
     }
   }
@@ -289,13 +258,9 @@ class AuthRepository {
       final userId = user.uid;
       await _firebaseService.cleanupUserData(userId);
       await user.delete();
-
-      log('AuthRepository: User account deleted successfully');
     } on FirebaseAuthException catch (e) {
-      log('AuthRepository: Firebase Auth error deleting account: ${e.code}');
       throw _handleAuthException(e);
     } catch (e) {
-      log('AuthRepository: Error deleting account: $e');
       rethrow;
     }
   }
@@ -310,7 +275,6 @@ class AuthRepository {
 
       return UserModel.fromFirebaseUser(user);
     } catch (e) {
-      log('AuthRepository: Error getting current user model: $e');
       return null;
     }
   }
@@ -337,7 +301,6 @@ class AuthRepository {
 
       return null;
     } catch (e) {
-      log('AuthRepository: Error getting user profile: $e');
       return null;
     }
   }
@@ -360,10 +323,7 @@ class AuthRepository {
         photoUrl: photoUrl,
         additionalData: additionalData,
       );
-
-      log('AuthRepository: User profile updated in Firestore');
     } catch (e) {
-      log('AuthRepository: Error updating user profile: $e');
       rethrow;
     }
   }
@@ -375,7 +335,6 @@ class AuthRepository {
           await _auth.fetchSignInMethodsForEmail(email.trim().toLowerCase());
       return methods.isNotEmpty;
     } catch (e) {
-      log('AuthRepository: Error checking if email exists: $e');
       return false;
     }
   }
@@ -479,13 +438,10 @@ class AuthRepository {
         photoUrl: linkedUser.photoURL,
       );
 
-      log('AuthRepository: Anonymous account linked successfully');
       return UserModel.fromFirebaseUser(linkedUser);
     } on FirebaseAuthException catch (e) {
-      log('AuthRepository: Firebase Auth error linking account: ${e.code}');
       throw _handleAuthException(e);
     } catch (e) {
-      log('AuthRepository: Error linking account: $e');
       rethrow;
     }
   }
@@ -500,14 +456,11 @@ class AuthRepository {
       }
 
       final user = credential.user!;
-      log('AuthRepository: Anonymous sign in successful');
 
       return UserModel.fromFirebaseUser(user);
     } on FirebaseAuthException catch (e) {
-      log('AuthRepository: Firebase Auth error during anonymous sign in: ${e.code}');
       throw _handleAuthException(e);
     } catch (e) {
-      log('AuthRepository: Error during anonymous sign in: $e');
       rethrow;
     }
   }

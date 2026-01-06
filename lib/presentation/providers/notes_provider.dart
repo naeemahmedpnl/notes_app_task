@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'dart:developer';
 import 'dart:async';
 import '../../data/models/note_model.dart';
 import '../../data/repositories/notes_repository.dart';
@@ -359,25 +358,16 @@ class NotesProvider extends ChangeNotifier {
   }
 
   void _logOperation(String message) {
-    final timestamp = DateTime.now().toIso8601String();
-    log('[$timestamp] NotesProvider: $message');
   }
 
   void _logSuccess(String message, Map<String, dynamic> data) {
-    final timestamp = DateTime.now().toIso8601String();
-    log('[$timestamp] ✅ NotesProvider SUCCESS: $message');
-    log('[$timestamp] Details: ${data.toString()}');
   }
 
   void _logError(String message, dynamic error) {
-    final timestamp = DateTime.now().toIso8601String();
-    log('[$timestamp] ❌ NotesProvider ERROR: $message');
-    log('[$timestamp] Error: ${error.toString()}');
   }
 
   @override
   void dispose() {
-    _logOperation('NotesProvider disposed - Cleaning up resources');
     _notesSubscription?.cancel();
     _notesSubscription = null;
     _currentUserId = null;

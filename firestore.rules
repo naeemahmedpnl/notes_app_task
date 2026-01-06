@@ -1,0 +1,79 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users collection rules
+    match /users/{userId} {
+      // Allow users to read and write their own user document
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow users to create their own user document during signup
+      allow create: if request.auth != null && request.auth.uid == userId;
+      
+      // Notes subcollection under user document
+      match /notes/{noteId} {
+        // Allow users to perform all operations on their own notes
+        allow read, write, create, update, delete: if request.auth != null && request.auth.uid == userId;
+        
+        // Additional validation for note creation
+        allow create: if request.auth != null 
+                     && request.auth.uid == userId
+                     && request.resource.data.userId == userId
+                     && request.resource.data.title is string
+                     && request.resource.data.message is string
+                     && request.resource.data.createdAt == request.time
+                     && request.resource.data.updatedAt == request.time;
+        
+        // Additional validation for note updates
+        allow update: if request.auth != null 
+                     && request.auth.uid == userId
+                     && resource.data.userId == userId
+                     && request.resource.data.userId == userId
+                     && request.resource.data.updatedAt == request.time;
+      }
+    }
+    
+    // Alternative: Direct notes collection (if you prefer flat structure)
+    match /notes/{noteId} {
+      // Allow users to read, write, and delete only their own notes
+      allow read, write, delete: if request.auth != null 
+                                 && resource.data.userId == request.auth.uid;
+      
+      // Allow users to create notes with proper validation
+      allow create: if request.auth != null
+                   && request.resource.data.userId == request.auth.uid
+                   && request.resource.data.title is string
+                   && request.resource.data.message is string
+                   && request.resource.data.createdAt == request.time
+                   && request.resource.data.updatedAt == request.time;
+      
+      // Allow users to update their notes with validation
+      allow update: if request.auth != null 
+                   && resource.data.userId == request.auth.uid
+                   && request.resource.data.userId == request.auth.uid
+                   && request.resource.data.updatedAt == request.time;
+    }
+    
+    // Helper functions for better validation
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function isValidNoteData() {
+      return request.resource.data.keys().hasAll(['title', 'message', 'userId', 'createdAt', 'updatedAt'])
+             && request.resource.data.title is string
+             && request.resource.data.message is string
+             && request.resource.data.userId is string
+             && request.resource.data.userId == request.auth.uid;
+    }
+    
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
